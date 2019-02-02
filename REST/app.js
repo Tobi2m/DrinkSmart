@@ -7,7 +7,7 @@ var crypto = require('crypto')
 var uuid = require('uuid')
 var bodyParser = require('body-parser')
 
-//app.use(morgan('combined'))
+app.use(morgan('combined'))
 
 var con=mysql.createConnection({
     host: 'us-cdbr-iron-east-01.cleardb.net',
@@ -44,6 +44,16 @@ function saltHashPassword(userPassword){
 app.use(bodyParser.json()); // Accept JSON Params
 app.use(bodyParser.urlencoded({extended: true})); // Accept URL Encoded params
 
+
+app.get("/tut",(req,res,next)=>{
+    console.log('Password: 123456');
+    var encrypt=saltHashPassword("123456")
+    console.log('Encrypt: '+encrypt.passwordHash);
+    console.log('Salt:  '+encrypt.salt);
+})
+
+
+//+++++++++++tab_benutzer++++++++++++++++++ 
 app.post('/regist/',(req,res,next)=>{
     
     var post_data = req.body; // Get POST params
@@ -78,6 +88,8 @@ app.post('/regist/',(req,res,next)=>{
     
 })
 
+// ++++++++tab_getraenk+++++++++++++++
+
 app.get('/fetch_all_drinks',(req, res)=>{
     console.log("Fetching all drinks") 
 
@@ -93,100 +105,12 @@ app.get('/fetch_all_drinks',(req, res)=>{
     })
 })
 
-
-app.get("/tut",(req,res,next)=>{
-    console.log('Password: 123456');
-    var encrypt=saltHashPassword("123456")
-    console.log('Encrypt: '+encrypt.passwordHash);
-    console.log('Salt:  '+encrypt.salt);
-})
-
-
-//+++++++++++tab_benutzer++++++++++++++++++ 
-
-/*
-app.get('/register/:query',(req, res)=>{
-    console.log("Register user with query: "+req.params.query)
-
-    
-    var sqlquery="INSERT INTO tab_benutzer (Vorname,Nachname,Passwort,Email) Values "+req.params.query
-
-    connection.query(sqlquery, (err, rows, fields) => {
-        if(err){
-            console.log("Failed to register user: "+err)
-            res.sendStatus(500)
-            return
-        }
-
-        console.log("I think we registered user successfully")
-    })
-    res.end();
-    connection.end();
-
-})
-
-app.get('/login_request/:email',(req, res) => {
-    console.log("Fetching user with email: " +req.params.email)
-
-    const connection = mysql.createConnection({
-        host: 'us-cdbr-iron-east-01.cleardb.net',
-        user: 'bbd883d66fc195',
-        password: '6dde4363',
-        database:'heroku_e045751d7ae8043'
-    })
-
-    const email = req.params.email
-    const queryString="SELECT * FROM tab_benutzer WHERE Email=?"
-    connection.query(queryString, [email], (err, rows, fields) => {
-        if(err){
-            console.log("Failed to query for user: "+err)
-            res.sendStatus(500)
-            return
-        }
-        console.log("I think we fetched user successfully")
-
-        res.json(rows)
-        connection.end();
-    })  
-})
-*/
-// ++++++++tab_getraenk+++++++++++++++
-
-app.get('/fetch_all_drinks',(req, res)=>{
-    console.log("Fetching all drinks") 
-
-    const connection=mysql.createConnection({
-        host: 'us-cdbr-iron-east-01.cleardb.net',
-        user: 'bbd883d66fc195',
-        password: '6dde4363',
-        database:'heroku_e045751d7ae8043'
-    })
-
-    const queryString= "SELECT * FROM tab_getraenk"
-    connection.query(queryString,(err,rows,fields)=>{
-        if(err){
-            console.log("Failed to query for drinks: "+err)
-            res.sendStatus(500)
-            return
-        }
-        res.json(rows)
-        connection.end();  
-    })
-})
-
 app.get('/fetch_drink_by_id/:drinkid',(req, res)=>{
     console.log("Fetching drink with id:  "+req.params.drinkid)
-
-    const connection=mysql.createConnection({
-        host: 'us-cdbr-iron-east-01.cleardb.net',
-        user: 'bbd883d66fc195',
-        password: '6dde4363',
-        database:'heroku_e045751d7ae8043'
-    })
     
     const drinkID=req.params.drinkid
     const queryString= "SELECT * FROM tab_getraenk WHERE GetraenkID=?"
-    connection.query(queryString, [drinkID],(err,rows,fields)=>{
+    con.query(queryString, [drinkID],(err,rows,fields)=>{
         if(err){
             console.log("Failed to query for drinks: "+err)
             res.sendStatus(500)
@@ -197,19 +121,60 @@ app.get('/fetch_drink_by_id/:drinkid',(req, res)=>{
             return {name: row.Bezeichnung, type: row.Sorte, alcohol: row.Alkohol}
         })
         res.json(drink)
-        connection.end();
+        con.end();
     })
 })
 
+app.get('/fetch_top10',(req, res)=>{
+    console.log("Fetching Top 10")
+
+    con.query("SELECT * FROM tab_getraenk ORDER BY Aufrufe DESC LIMIT 10",(err,rows,fields)=>{
+        if(err){
+            console.log("Failed to fetch top10: "+err)
+            res.sendStatus(500)
+            return
+        }
+        res.json(rows)
+    })
+})
+
+app.post('/update_views/',(req,res,next)=>{
+    var post_data=req.body
+
+    var drinkid=post_data.drinkid
+    var sqlquery="UPDATE tab_getraenk SET Aufrufe=Aufrufe+1 WHERE GetraenkID="+drinkid
+
+    con.query(sqlquery,(err,rows,fields)=>{
+        if(err){
+            console.log("Failed to query for drinks: "+err)
+            res.sendStatus(500)
+            return
+        }
+        res.json('UPDATE views successful!');
+    });
+})
+
+app.post('/update_rating/',(req,res,next)=>{
+    var post_data=req.body
+
+    var drinkid = post_data.drinkid
+    var rating = post_data.rating
+
+    var sqlquery="UPDATE tab_getraenk SET Bewertungssumme=Bewertungssumme+"+rating+", Bewertungsanzahl=Bewertungsanzahl+1, Bewertung=Bewertungssumme/Bewertungsanzahl WHERE GetraenkID = "+drinkid
+
+    con.query(sqlquery,(err,rows,fields)=>{
+        if(err){
+            console.log("Failed to update rating count!: "+err)
+            res.sendStatus(500)
+            return
+        }
+        res.json('UPDATE rating count successful!');
+    })
+})
+
+/*
 app.get('/update_drink_visits/:drinkid',(req, res)=>{
     console.log("Update drink with id:  "+req.params.drinkid)
-
-    const connection=mysql.createConnection({
-        host: 'us-cdbr-iron-east-01.cleardb.net',
-        user: 'bbd883d66fc195',
-        password: '6dde4363',
-        database:'heroku_e045751d7ae8043'
-    })
     
     const drinkID=req.params.drinkid    
 
@@ -240,21 +205,21 @@ app.get('/update_drink_visits/:drinkid',(req, res)=>{
         res.json(visits)
     })    
 })
-
+*/
 //+++++++++++++tab_zutat++++++++++++++++++
 
 app.get('/fetch_all_ingredients',(req, res)=>{
     console.log("Fetching all Ingredients") 
 
     const queryString= "SELECT * FROM tab_zutat"
-    connection.query(queryString,(err,rows,fields)=>{
+    con.query(queryString,(err,rows,fields)=>{
         if(err){
             console.log("Failed to query for ingredients: "+err)
             res.sendStatus(500)
             return
         }
         res.json(rows)
-        connection.end();
+        con.end();
     })
 })
 
@@ -264,25 +229,43 @@ app.get('/fetch_all_ingredient_drink_connections',(req, res)=>{
     console.log("Fetching all ingredient-drink connections") 
 
     const queryString= "SELECT * FROM tab_istzutatvon"
-    connection.query(queryString,(err,rows,fields)=>{
+    con.query(queryString,(err,rows,fields)=>{
         if(err){
             console.log("Failed to query for ingredient-drink connections: "+err)
             res.sendStatus(500)
             return
         }
         res.json(rows)
-        connection.end();
+        con.end();
     })
 })
 
 //++++++++++++++tab_istfavoritvon++++++++++++++
+
+app.post('/update_favourites/',(req, res,next)=>{
+    var post_data=req.body
+
+    var userid=post_data.userid
+    var drinkid=post_data.drinkid
+    //var sqlstring = 'INSERT INTO tab_istfavoritvon (BenutzerID, GetraenkID) VALUES (?,?)',[drinkid,userid]
+
+    con.query('INSERT INTO tab_istfavoritvon (BenutzerID, GetraenkID) VALUES (?,?)',[userid,drinkid],function(err,result,fields){
+        console.log(drinkid);
+        console.log(userid);
+        con.on('error',function(err){
+            console.log('[MySQL ERROR]',err);
+            res.json('INSERT favourite error: ',err)
+        });
+        res.json('INSERT favourite successful!');
+    })
+})
 
 app.get('/fetch_favourites_by_userid/:userid',(req, res)=>{
     console.log("Fetching favourites for User: "+req.params.userid) 
 
     const userid=req.params.userid
     const queryString= "SELECT * FROM tab_istfavoritvon WHERE BenutzerID=?"
-    connection.query(queryString, [userid],(err,rows,fields)=>{
+    con.query(queryString, [userid],(err,rows,fields)=>{
         if(err){
             console.log("Failed to query for favourites: "+err)
             res.sendStatus(500)
@@ -291,7 +274,7 @@ app.get('/fetch_favourites_by_userid/:userid',(req, res)=>{
         res.json(rows)
     })
 })
-
+/*
 app.get('/insert_favourite/:query',(req, res)=>{
     console.log("Insert favourite with query: "+req.params.query)
     
@@ -309,7 +292,7 @@ app.get('/insert_favourite/:query',(req, res)=>{
     res.end();
     connection.end();
 })
-
+*/
 //+++++++++++++++tab_herkunftsland+++++++++++++
 
 app.get('/fetch_all_countries',(req, res)=>{
@@ -317,7 +300,7 @@ app.get('/fetch_all_countries',(req, res)=>{
 
     const userid=req.params.userid
     const queryString= "SELECT * FROM tab_herkunftsland"
-    connection.query(queryString, [userid],(err,rows,fields)=>{
+    con.query(queryString, [userid],(err,rows,fields)=>{
         if(err){
             console.log("Failed to query for countries: "+err)
             res.sendStatus(500)
