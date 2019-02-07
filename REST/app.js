@@ -11,14 +11,47 @@ app.use(morgan('combined'))
 app.use(bodyParser.json()); // Accept JSON Params
 app.use(bodyParser.urlencoded({extended: false})); // Accept URL Encoded params
 
-//++++++++++++++++Connection properties++++++++++++++++
+//++++++++++++++++Connection properties+++++++++++++
 
-const connection=mysql.createConnection({
+/*
+var connection=mysql.createConnection({
     host: 'us-cdbr-iron-east-01.cleardb.net',
         user: 'bbd883d66fc195',
         password: '6dde4363',
         database:'heroku_e045751d7ae8043'
 })
+*/
+
+var db_config={
+    host: 'us-cdbr-iron-east-01.cleardb.net',
+        user: 'bbd883d66fc195',
+        password: '6dde4363',
+        database:'heroku_e045751d7ae8043'
+};
+
+//++++++++++++++++Disconnect_Handler+++++++++++++++++++
+
+function handleDisconnect() {
+    connection = mysql.createConnection(db_config); // Recreate the connection, since
+                                                    // the old one cannot be reused.
+  
+    connection.connect(function(err) {              // The server is either down
+      if(err) {                                     // or restarting (takes a while sometimes).
+        console.log('error when connecting to db:', err);
+        setTimeout(handleDisconnect, 2000); // We introduce a delay before attempting to reconnect,
+      }                                     // to avoid a hot loop, and to allow our node script to
+    });                                     // process asynchronous requests in the meantime.
+                                            // If you're also serving http, display a 503 error.
+    connection.on('error', function(err) {
+      console.log('db error', err);
+      if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
+        handleDisconnect();                         // lost due to either server restart, or a
+      } else {                                      // connnection idle timeout (the wait_timeout
+        throw err;                                  // server variable configures this)
+      }
+    });
+  }
+
 
 //++++++++++++++++++Register/Login/Hashing+++++++++++++
 
@@ -55,9 +88,10 @@ function checkHashPassword(userPassword,salt){
 
 app.post('/register/',(req,res,next)=>{
     
+    handleDisconnect();
     var post_data = req.body; // Get POST params
 
-    var uid= uuid.v4(); // Get UUID v4
+    //var uid= uuid.v4(); // Get UUID v4
     var plaint_Password = post_data.password; // Get password from post params
     var hash_data = saltHashPassword(plaint_Password);
     var password = hash_data.passwordHash; // Get hash value
@@ -71,22 +105,27 @@ app.post('/register/',(req,res,next)=>{
             console.log('[MySQL ERROR]',err);
         });
 
-        if(result && result.length)
+        if(result && result.length){
             res.json('User already exists!!!');
+            //res.end();
+        }
         else
         {
             connection.query('INSERT INTO tab_benutzer (name,email,encrypted_password,salt) VALUES (?,?,?,?)',[name,email,password,salt],function(err,result,fields){
                 connection.on('error',function(err){
                     console.log('[MySQL ERROR]',err);
-                    res.json('Register error: ',err)
+                    res.status('Register error: ').json(err);
                 });
                 res.json('Register successful');
+                //res.end();
+                connection.end();
             })
         }
     });
 })
 
 app.post('/login/',(req,res,next)=>{
+    handleDisconnect();
     
     var post_data = req.body;
 
@@ -114,7 +153,7 @@ app.post('/login/',(req,res,next)=>{
             res.json('User does not exist!!!');
         }
     });
-
+    connection.end();
 })
 
 
@@ -175,8 +214,8 @@ app.get('/login_request/:email',(req, res) => {
 // ++++++++tab_getraenk++++++++++++++++
 
 app.get('/fetch_all_drinks',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching all drinks") 
-
     const queryString= "SELECT * FROM tab_getraenk"
     connection.query(queryString,(err,rows,fields)=>{
         if(err){
@@ -190,6 +229,7 @@ app.get('/fetch_all_drinks',(req, res)=>{
 })
 
 app.get('/fetch_drink_by_id/:drinkid',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching drink with id:  "+req.params.drinkid)
     
     const drinkID=req.params.drinkid
@@ -207,9 +247,11 @@ app.get('/fetch_drink_by_id/:drinkid',(req, res)=>{
         res.json(drink)
         connection.end();
     })
+    connection.end();
 })
 
 app.get('/fetch_top10',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching Top 10")
 
     connection.query("SELECT * FROM tab_getraenk ORDER BY Aufrufe DESC LIMIT 10",(err,rows,fields)=>{
@@ -220,9 +262,11 @@ app.get('/fetch_top10',(req, res)=>{
         }
         res.json(rows)
     })
+    connection.end();
 })
 
 app.post('/update_views/',(req,res,next)=>{
+    handleDisconnect();
     var post_data=req.body
 
     var drinkid=post_data.drinkid
@@ -236,9 +280,11 @@ app.post('/update_views/',(req,res,next)=>{
         }
         res.json('UPDATE views successful!');
     });
+    connection.end();
 })
 
 app.post('/update_rating/',(req,res,next)=>{
+    handleDisconnect();
     var post_data=req.body
 
     var drinkid = post_data.drinkid
@@ -253,7 +299,8 @@ app.post('/update_rating/',(req,res,next)=>{
             return
         }
         res.json('UPDATE rating count successful!');
-    })
+    });
+    connection.end();
 })
     
 	/*
@@ -277,6 +324,7 @@ app.post('/update_rating/',(req,res,next)=>{
 //+++++++++++++tab_zutat++++++++++++++++++
 
 app.get('/fetch_all_ingredients',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching all Ingredients") 
 
     const queryString= "SELECT * FROM tab_zutat"
@@ -289,11 +337,13 @@ app.get('/fetch_all_ingredients',(req, res)=>{
         res.json(rows)
         connection.end();
     })
+    connection.end();
 })
 
 //++++++++++++++tab_istzutatvon++++++++++++++++
 
 app.get('/fetch_all_ingredient_drink_connections',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching all ingredient-drink connections") 
 
     const queryString= "SELECT * FROM tab_istzutatvon"
@@ -311,6 +361,7 @@ app.get('/fetch_all_ingredient_drink_connections',(req, res)=>{
 //++++++++++++++tab_istfavoritvon++++++++++++++
 
 app.get('/fetch_favourites_by_userid/:userid',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching favourites for User: "+req.params.userid) 
 
     const userid=req.params.userid
@@ -326,6 +377,7 @@ app.get('/fetch_favourites_by_userid/:userid',(req, res)=>{
 })
 
 app.post('/update_favourites/',(req, res,next)=>{
+    handleDisconnect();
     var post_data=req.body
 
     var userid=post_data.userid
@@ -341,11 +393,13 @@ app.post('/update_favourites/',(req, res,next)=>{
         });
         res.json('INSERT favourite successful!');
     })
+    connection.end();
 })
 
 //+++++++++++++++tab_herkunftsland+++++++++++++
 
 app.get('/fetch_all_countries',(req, res)=>{
+    handleDisconnect();
     console.log("Fetching all source countries") 
 
     const userid=req.params.userid
@@ -358,9 +412,14 @@ app.get('/fetch_all_countries',(req, res)=>{
         }
         res.json(rows)
     })
+    connection.end();
 })
 
 //+++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
 app.get('')
 
 app.get("/",(req,res) => {
@@ -369,7 +428,7 @@ app.get("/",(req,res) => {
 })
 
 
-const PORT = process.env.PORT || 3003
+const PORT = process.env.PORT || 80
 // localhost:PORT
 app.listen(PORT, () => {
     console.log("Server is up and listening on : "+PORT)
