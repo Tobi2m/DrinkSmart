@@ -7,13 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
 import com.example.stoci.drinksmart.Model.Drink
 import com.example.stoci.drinksmart.R
 
 class DrinkListAdapter(internal  var context:Context,
                        internal  var drinkList:List<Drink>):RecyclerView.Adapter<DrinkListAdapter.MyViewHolder>() {
 
-    override fun onCreateViewHolder(p0: ViewGroup, p1: Int): MyViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val itemView=LayoutInflater.from(context).inflate(R.layout.drink_list_item,parent,false)
         return MyViewHolder(itemView)
     }
@@ -22,8 +23,9 @@ class DrinkListAdapter(internal  var context:Context,
         return drinkList.size
     }
 
-    override fun onBindViewHolder(p0: MyViewHolder, p1: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        Glide.with(context).load(drinkList[position].bild).into(holder.img_drink)
+        holder.txt_drink.text= drinkList[position].bezeichnung
     }
 
     inner class MyViewHolder(itemView: View):RecyclerView.ViewHolder(itemView){

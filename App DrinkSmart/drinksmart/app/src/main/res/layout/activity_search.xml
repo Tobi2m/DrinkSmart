@@ -17,16 +17,6 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <com.mancj.materialsearchbar.MaterialSearchBar
-        app:theme="@style/AppTheme.PopupOverlay"
-        app:mt_speechMode="true"
-        app:mt_hint="Custom hint"
-        app:mt_maxSuggestionsCount="10"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/searchBar"
-        />
-
     <fragment
         android:name="com.example.stoci.drinksmart.DrinkList"
         android:id="@+id/list_drink_fragment"
