@@ -37,7 +37,7 @@ class activity_login : AppCompatActivity() {
             Handler().postDelayed({
                 startActivity(Intent(this@activity_login,LoadingActivity::class.java))
                 finish()
-            }, 5000)
+            }, 2000)
         }
 
         register_button.setOnClickListener{

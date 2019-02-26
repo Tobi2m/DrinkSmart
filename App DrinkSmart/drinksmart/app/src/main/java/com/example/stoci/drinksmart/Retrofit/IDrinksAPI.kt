@@ -1,11 +1,11 @@
 package com.example.stoci.drinksmart.Retrofit
 
-import com.example.stoci.drinksmart.Model.Drinks
+import com.example.stoci.drinksmart.Model.Drink
 import io.reactivex.Observable
 import retrofit2.http.GET
+import java.util.*
 
-
-interface IDrinkList {
+interface IDrinksAPI {
     @get:GET("fetch_all_drinks")
-    val listDrink:Observable<Drinks>
+    val drinks:Observable<List<Drink>>
 }

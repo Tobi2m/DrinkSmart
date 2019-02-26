@@ -23,16 +23,19 @@ object RetrofitClient {
 }
 
 object RetrofitClientDrinks {
-    private var ourInstance:Retrofit?=null
-
+    private var ourInstance: Retrofit?= null
     val instance:Retrofit
-    get(){
-        if(ourInstance == null)
-            ourInstance=Retrofit.Builder()
-                    .baseUrl("http://guarded-inlet-38884.herokuapp.com/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                    .build()
-        return ourInstance!!
-    }
+        get(){
+            if(ourInstance == null) {
+                ourInstance = Retrofit.Builder()
+                        .baseUrl("http://guarded-inlet-38884.herokuapp.com/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                        .build()
+            }
+            return ourInstance!!
+
+        }
+
 }
+
