@@ -24,6 +24,7 @@ class activity_login : AppCompatActivity() {
     lateinit var  myAPI:INodeJS
     var compositeDisposable=CompositeDisposable()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -34,10 +35,10 @@ class activity_login : AppCompatActivity() {
 
         login_button.setOnClickListener{
             login(edt_email.text.toString(),edt_password.text.toString())
-            Handler().postDelayed({
-                startActivity(Intent(this@activity_login,LoadingActivity::class.java))
-                finish()
-            }, 2000)
+                Handler().postDelayed({
+                    startActivity(Intent(this@activity_login, LoadingActivity::class.java))
+                    finish()
+                }, 2000)
         }
 
         register_button.setOnClickListener{
@@ -77,11 +78,14 @@ class activity_login : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe{message ->
-                    if(message.contains("encrypted_password"))
-                        Toast.makeText(this@activity_login,"Login success",Toast.LENGTH_SHORT).show()
-                    else
-                        Toast.makeText(this@activity_login,message,Toast.LENGTH_SHORT).show()
+                    if(message.contains("encrypted_password")) {
+                        Toast.makeText(this@activity_login, "Login success", Toast.LENGTH_SHORT).show()
+                    }
+                    else {
+                        Toast.makeText(this@activity_login, message, Toast.LENGTH_SHORT).show()
+                    }
                 })
+
     }
 
     override fun onStop() {

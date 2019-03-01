@@ -20,5 +20,7 @@ class DrinkAdapter(internal var context:Context,internal var drinkList:List<Drin
 
     override fun onBindViewHolder(holder: DrinkViewHolder, position: Int) {
         holder.txt_drink_name.text=drinkList[position].Bezeichnung.toString()
+
+
     }
 }

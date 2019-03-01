@@ -39,3 +39,19 @@ object RetrofitClientDrinks {
 
 }
 
+object RetrofitClientTop10{
+    private var ourInstance: Retrofit?= null
+    val instance:Retrofit
+        get(){
+            if(ourInstance == null) {
+                ourInstance = Retrofit.Builder()
+                        .baseUrl("http://guarded-inlet-38884.herokuapp.com/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                        .build()
+            }
+            return ourInstance!!
+
+        }
+
+}

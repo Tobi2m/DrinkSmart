@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_search.*
 class SearchActivity : AppCompatActivity() {
 
     internal lateinit var jsonAPI: IDrinksAPI
-     var compositeDisposable: CompositeDisposable= CompositeDisposable()
+    var compositeDisposable: CompositeDisposable= CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
