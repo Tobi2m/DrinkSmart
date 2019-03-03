@@ -4,7 +4,7 @@ import com.example.stoci.drinksmart.Model.Drink
 import io.reactivex.Observable
 import retrofit2.http.GET
 
-interface ITop10API {
+interface IDrinksTop10 {
     @get:GET("fetch_top10")
-    val top10: Observable<List<Drink>>
+    val drinkstop10: Observable<List<Drink>>
 }

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
-import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
@@ -12,12 +11,10 @@ import com.example.stoci.drinksmart.Retrofit.INodeJS
 import com.example.stoci.drinksmart.Retrofit.RetrofitClient
 import com.github.javiersantos.materialstyleddialogs.MaterialStyledDialog
 import com.rengwuxian.materialedittext.MaterialEditText
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_login.*
-import retrofit2.Retrofit
 
 class activity_login : AppCompatActivity() {
 
@@ -35,10 +32,13 @@ class activity_login : AppCompatActivity() {
 
         login_button.setOnClickListener{
             login(edt_email.text.toString(),edt_password.text.toString())
-                Handler().postDelayed({
-                    startActivity(Intent(this@activity_login, LoadingActivity::class.java))
-                    finish()
-                }, 2000)
+<<<<<<< HEAD
+=======
+            Handler().postDelayed({
+                startActivity(Intent(this@activity_login,LoadingActivity::class.java))
+                finish()
+            }, 2000)
+>>>>>>> 1bf9eb24fc69419d3f16ac1848e4cbe2d6a01544
         }
 
         register_button.setOnClickListener{
@@ -78,14 +78,21 @@ class activity_login : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe{message ->
+                    /*val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Message")
+                    builder.setMessage(message)
+                    builder.show()*/
                     if(message.contains("encrypted_password")) {
                         Toast.makeText(this@activity_login, "Login success", Toast.LENGTH_SHORT).show()
+                        Handler().postDelayed({
+                            startActivity(Intent(this@activity_login, LoadingActivity::class.java))
+                            finish()
+                        }, 2000)
                     }
                     else {
                         Toast.makeText(this@activity_login, message, Toast.LENGTH_SHORT).show()
                     }
                 })
-
     }
 
     override fun onStop() {

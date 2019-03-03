@@ -23,10 +23,17 @@ object RetrofitClient {
 }
 
 object RetrofitClientDrinks {
+<<<<<<< HEAD
+    private var ourInstance: Retrofit? = null
+    val instance: Retrofit
+        get() {
+            if (ourInstance == null) {
+=======
     private var ourInstance: Retrofit?= null
     val instance:Retrofit
         get(){
             if(ourInstance == null) {
+>>>>>>> 1bf9eb24fc69419d3f16ac1848e4cbe2d6a01544
                 ourInstance = Retrofit.Builder()
                         .baseUrl("http://guarded-inlet-38884.herokuapp.com/")
                         .addConverterFactory(GsonConverterFactory.create())
@@ -36,15 +43,15 @@ object RetrofitClientDrinks {
             return ourInstance!!
 
         }
-
+<<<<<<< HEAD
 }
 
-object RetrofitClientTop10{
-    private var ourInstance: Retrofit?= null
-    val instance:Retrofit
-        get(){
-            if(ourInstance == null) {
-                ourInstance = Retrofit.Builder()
+object RetrofitClientDrinksTop10 {
+    private var ourInstance:Retrofit?=null
+    val instance: Retrofit
+        get() {
+            if (RetrofitClientDrinksTop10.ourInstance == null) {
+                RetrofitClientDrinksTop10.ourInstance = Retrofit.Builder()
                         .baseUrl("http://guarded-inlet-38884.herokuapp.com/")
                         .addConverterFactory(GsonConverterFactory.create())
                         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -53,5 +60,8 @@ object RetrofitClientTop10{
             return ourInstance!!
 
         }
+=======
 
+>>>>>>> 1bf9eb24fc69419d3f16ac1848e4cbe2d6a01544
 }
+
